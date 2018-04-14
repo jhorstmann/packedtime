@@ -18,11 +18,11 @@ public class PackedOffsetDateTimeTest {
 
     @Test
     public void yearZero() {
-        OffsetDateTime min = OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-        PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(min);
+        OffsetDateTime zero = OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(zero);
 
-        Assertions.assertEquals(min, packed.toOffsetDateTime());
-        Assertions.assertEquals(min.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(zero, packed.toOffsetDateTime());
+        Assertions.assertEquals(zero.toString(), packed.toOffsetDateTime().toString());
     }
 
     @Test
@@ -36,11 +36,11 @@ public class PackedOffsetDateTimeTest {
 
     @Test
     public void maxYear() {
-        OffsetDateTime min = OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 999_000_000, ZoneOffset.UTC);
-        PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(min);
+        OffsetDateTime max = OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 999_000_000, ZoneOffset.UTC);
+        PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(max);
 
-        Assertions.assertEquals(min, packed.toOffsetDateTime());
-        Assertions.assertEquals(min.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(max, packed.toOffsetDateTime());
+        Assertions.assertEquals(max.toString(), packed.toOffsetDateTime().toString());
     }
 
     @Test
