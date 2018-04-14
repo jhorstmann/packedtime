@@ -41,6 +41,11 @@ nano   |   10 | limited to millisecond precision
 offset |   12 | limited to minute precision, same range as `ZoneOffset` (-18:00 to +18:00)
 ```
 
+For `PackedZonedDateTime` the `offset` value is used as an internal identifier for the timezone region and offset.
+
+**Warning:** This means a program can at most handle 4096 distinct region / offset values.
+Be very careful when accepting region and offset from untrusted sources to avoid denial of service issues.
+
 ## Equality
 
 In constrast to `java.time` values, `equals` and `hashCode` are based solely on the internal representation. To compare

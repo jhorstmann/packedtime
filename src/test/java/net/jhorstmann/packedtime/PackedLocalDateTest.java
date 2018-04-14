@@ -14,7 +14,7 @@ public class PackedLocalDateTest {
         PackedLocalDate packed = PackedLocalDate.fromLocalDate(now);
 
         Assertions.assertEquals(now, packed.toLocalDate());
-        Assertions.assertEquals(now.toString(), packed.toLocalDate().toString());
+        Assertions.assertEquals(now.toString(), packed.toString());
     }
 
     @Test
@@ -23,7 +23,7 @@ public class PackedLocalDateTest {
         PackedLocalDate packed = PackedLocalDate.fromLocalDate(zero);
 
         Assertions.assertEquals(zero, packed.toLocalDate());
-        Assertions.assertEquals(zero.toString(), packed.toLocalDate().toString());
+        Assertions.assertEquals(zero.toString(), packed.toString());
     }
 
     @Test
@@ -32,7 +32,7 @@ public class PackedLocalDateTest {
         PackedLocalDate packed = PackedLocalDate.fromLocalDate(min);
 
         Assertions.assertEquals(min, packed.toLocalDate());
-        Assertions.assertEquals(min.toString(), packed.toLocalDate().toString());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
     @Test
@@ -41,7 +41,7 @@ public class PackedLocalDateTest {
         PackedLocalDate packed = PackedLocalDate.fromLocalDate(max);
 
         Assertions.assertEquals(max, packed.toLocalDate());
-        Assertions.assertEquals(max.toString(), packed.toLocalDate().toString());
+        Assertions.assertEquals(max.toString(), packed.toString());
     }
 
 }

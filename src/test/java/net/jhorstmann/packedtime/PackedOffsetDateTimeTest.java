@@ -10,11 +10,11 @@ import java.util.Comparator;
 public class PackedOffsetDateTimeTest {
     @Test
     public void now() {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now().withNano(123_000_000);
         PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(now);
 
         Assertions.assertEquals(now, packed.toOffsetDateTime());
-        Assertions.assertEquals(now.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(now.toString(), packed.toString());
     }
 
     @Test
@@ -23,7 +23,7 @@ public class PackedOffsetDateTimeTest {
         PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(zero);
 
         Assertions.assertEquals(zero, packed.toOffsetDateTime());
-        Assertions.assertEquals(zero.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(zero.toString(), packed.toString());
     }
 
     @Test
@@ -32,7 +32,7 @@ public class PackedOffsetDateTimeTest {
         PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(min);
 
         Assertions.assertEquals(min, packed.toOffsetDateTime());
-        Assertions.assertEquals(min.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
     @Test
@@ -41,7 +41,16 @@ public class PackedOffsetDateTimeTest {
         PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(max);
 
         Assertions.assertEquals(max, packed.toOffsetDateTime());
-        Assertions.assertEquals(max.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(max.toString(), packed.toString());
+    }
+
+    @Test
+    public void negativeOffset() {
+        OffsetDateTime min = OffsetDateTime.of(2018, 1, 1, 0, 0, 0, 0, ZoneOffset.ofHours(-1));
+        PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(min);
+
+        Assertions.assertEquals(min, packed.toOffsetDateTime());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
     @Test
@@ -50,7 +59,7 @@ public class PackedOffsetDateTimeTest {
         PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(min);
 
         Assertions.assertEquals(min, packed.toOffsetDateTime());
-        Assertions.assertEquals(min.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
     @Test
@@ -59,7 +68,7 @@ public class PackedOffsetDateTimeTest {
         PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(min);
 
         Assertions.assertEquals(min, packed.toOffsetDateTime());
-        Assertions.assertEquals(min.toString(), packed.toOffsetDateTime().toString());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
 }

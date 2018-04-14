@@ -4,16 +4,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 public class PackedLocalDateTimeTest {
     @Test
     public void now() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now().withNano(789_000_000);
         PackedLocalDateTime packed = PackedLocalDateTime.fromLocalDateTime(now);
 
         Assertions.assertEquals(now, packed.toLocalDateTime());
-        Assertions.assertEquals(now.toString(), packed.toLocalDateTime().toString());
+        Assertions.assertEquals(now.toString(), packed.toString());
     }
 
     @Test
@@ -22,7 +21,7 @@ public class PackedLocalDateTimeTest {
         PackedLocalDateTime packed = PackedLocalDateTime.fromLocalDateTime(zero);
 
         Assertions.assertEquals(zero, packed.toLocalDateTime());
-        Assertions.assertEquals(zero.toString(), packed.toLocalDateTime().toString());
+        Assertions.assertEquals(zero.toString(), packed.toString());
     }
 
     @Test
@@ -31,7 +30,7 @@ public class PackedLocalDateTimeTest {
         PackedLocalDateTime packed = PackedLocalDateTime.fromLocalDateTime(min);
 
         Assertions.assertEquals(min, packed.toLocalDateTime());
-        Assertions.assertEquals(min.toString(), packed.toLocalDateTime().toString());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
     @Test
@@ -40,7 +39,7 @@ public class PackedLocalDateTimeTest {
         PackedLocalDateTime packed = PackedLocalDateTime.fromLocalDateTime(max);
 
         Assertions.assertEquals(max, packed.toLocalDateTime());
-        Assertions.assertEquals(max.toString(), packed.toLocalDateTime().toString());
+        Assertions.assertEquals(max.toString(), packed.toString());
     }
 
 }

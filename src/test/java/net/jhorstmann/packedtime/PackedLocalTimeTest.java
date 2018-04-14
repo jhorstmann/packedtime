@@ -8,11 +8,11 @@ import java.time.LocalTime;
 public class PackedLocalTimeTest {
     @Test
     public void now() {
-        LocalTime now = LocalTime.now();
+        LocalTime now = LocalTime.now().withNano(456_000_000);
         PackedLocalTime packed = PackedLocalTime.fromLocalTime(now);
 
         Assertions.assertEquals(now, packed.toLocalTime());
-        Assertions.assertEquals(now.toString(), packed.toLocalTime().toString());
+        Assertions.assertEquals(now.toString(), packed.toString());
     }
 
     @Test
@@ -21,7 +21,7 @@ public class PackedLocalTimeTest {
         PackedLocalTime packed = PackedLocalTime.fromLocalTime(min);
 
         Assertions.assertEquals(min, packed.toLocalTime());
-        Assertions.assertEquals(min.toString(), packed.toLocalTime().toString());
+        Assertions.assertEquals(min.toString(), packed.toString());
     }
 
     @Test
@@ -30,7 +30,7 @@ public class PackedLocalTimeTest {
         PackedLocalTime packed = PackedLocalTime.fromLocalTime(max);
 
         Assertions.assertEquals(max, packed.toLocalTime());
-        Assertions.assertEquals(max.toString(), packed.toLocalTime().toString());
+        Assertions.assertEquals(max.toString(), packed.toString());
     }
 
 }
