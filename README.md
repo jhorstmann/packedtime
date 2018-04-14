@@ -1,4 +1,4 @@
-# Space-efficient storage of java.time values with fast toString operations
+# Memory-efficient wrapper for java.time values with fast toString operations
 
 The layout of `java.time` types like `OffsetDateTime` is not very space efficient.
 In jdk8, the memory layout of `OffsetDateTime` looks like the following:
