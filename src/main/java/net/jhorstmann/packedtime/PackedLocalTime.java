@@ -1,0 +1,63 @@
+package net.jhorstmann.packedtime;
+
+import java.time.LocalTime;
+
+public class PackedLocalTime extends AbstractPackedDateTime {
+    PackedLocalTime(long value) {
+        super(value);
+    }
+
+    public static PackedLocalTime valueOf(long value) {
+        return new PackedLocalTime(value);
+    }
+
+    public static PackedLocalTime fromLocalTime(LocalTime localTime) {
+        return new PackedLocalTime(encode(0, 0, 0,
+                localTime.getHour(),
+                localTime.getMinute(),
+                localTime.getSecond(),
+                localTime.getNano(),
+                0));
+    }
+
+    public static PackedLocalTime parse(String str) {
+        return fromLocalTime(LocalTime.parse(str));
+    }
+
+    public static LocalTime toLocalTime(long value) {
+        return valueOf(value).toLocalTime();
+    }
+
+    public LocalTime toLocalTime() {
+        return LocalTime.of(getHour(), getMinute(), getSecond(), getNanos());
+    }
+
+    public int getHour() {
+        return extractHour();
+    }
+
+    public int getMinute() {
+        return extractMinute();
+    }
+
+    public int getSecond() {
+        return extractSecond();
+    }
+
+    public int getMilliSecond() {
+        return extractMilli();
+    }
+
+    public int getNanos() {
+        return extractMilli() * 1_000_000;
+    }
+
+    public String toString() {
+        char[] buf = new char[16];
+
+        int len = appendTime(buf, 0);
+
+        return new String(buf, 0, len);
+    }
+
+}

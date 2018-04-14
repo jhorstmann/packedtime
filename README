@@ -25,11 +25,13 @@ Assuming 4 byte pointers and no other object overhead, this already results in a
 even more since each object has about 4-8 bytes of overhead. Most of these fields can be represented using less bits and packed
 into one field, without the overhead of intermediate objects.
 
-## Packed representation
+## Packed representation and limitations
+
+Date, time and offset information is stored in packed into one long field.
 
 ```
 field  | bits | limitations
-year   |   16 | currently restricted to -9999 to 9999 range to simplify toString method
+year   |   16 | currently restricted to -9999 to 9999 range to simplify `toString` method
 month  |    4 |
 day    |    5 |
 hour   |    5 |
@@ -37,5 +39,14 @@ minute |    6 |
 second |    6 |
 nano   |   10 | limited to millisecond precision
 offset |   12 | limited to minute precision, same range as `ZoneOffset` (-18:00 to +18:00)
+```
+
+## Equality
+
+In constrast to `java.time` values, `equals` and `hashCode` are based solely on the internal representation. To compare
+objects in the same way as `java.time`, use an explicit `Comparator`. For example:
+
+```java
+Comparator<OffsetDateTime> comparator = Comparator.comparing(OffsetDateTime::toOffsetTime);
 ```
 

@@ -32,7 +32,8 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
     }
 
     public OffsetDateTime toOffsetDateTime() {
-        return OffsetDateTime.of(extractYear(), extractMonth(), extractDay(), extractHour(), extractMinute(), extractSecond(), getNanos(), ZoneOffset.ofTotalSeconds(getOffsetSecond()));
+        ZoneOffset offset = ZoneOffset.ofTotalSeconds(getOffsetSecond());
+        return OffsetDateTime.of(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getNano(), offset);
     }
 
     public int getYear() {
@@ -63,7 +64,7 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
         return extractMilli();
     }
 
-    public int getNanos() {
+    public int getNano() {
         return extractMilli() * 1_000_000;
     }
 
