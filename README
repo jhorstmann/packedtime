@@ -1,0 +1,41 @@
+# Space-efficient storage of java.time values with fast toString operations
+
+The layout of `java.time` types like `OffsetDateTime` is not very space efficient.
+In jdk8, the memory layout of `OffsetDateTime` looks like the following:
+
+```
+bytes | field     | type
+    4 | dateTime  | LocalDateTime
+    4 | .date     | LocalDate
+    4 |  .year    | int
+    2 |  .month   | short
+    2 |  .day     | short
+    4 | .time     | LocalTime
+    1 |  .hour    | byte
+    1 |  .minute  | byte
+    1 |  .second  | byte
+    1 |  (padding)|
+    4 |  .nano    | int
+    4 | .offset   | ZoneOffset
+    4 |  .seconds | int
+    4 |  .id      | String
+```
+
+Assuming 4 byte pointers and no other object overhead, this already results in a size of 40 bytes per `OffsetDateTime` object,
+even more since each object has about 4-8 bytes of overhead. Most of these fields can be represented using less bits and packed
+into one field, without the overhead of intermediate objects.
+
+## Packed representation
+
+```
+field  | bits | limitations
+year   |   16 | currently restricted to -9999 to 9999 range to simplify toString method
+month  |    4 |
+day    |    5 |
+hour   |    5 |
+minute |    6 |
+second |    6 |
+nano   |   10 | limited to millisecond precision
+offset |   12 | limited to minute precision, same range as `ZoneOffset` (-18:00 to +18:00)
+```
+
