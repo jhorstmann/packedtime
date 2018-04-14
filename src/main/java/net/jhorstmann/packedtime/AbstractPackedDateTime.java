@@ -185,7 +185,7 @@ abstract class AbstractPackedDateTime {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public final boolean equals(Object other) {
         if (other == null) {
             return false;
         }
@@ -198,7 +198,7 @@ abstract class AbstractPackedDateTime {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return (int) ((value >> 32) ^ value);
     }
 }
