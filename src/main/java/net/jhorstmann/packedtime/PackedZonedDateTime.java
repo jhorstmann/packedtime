@@ -45,6 +45,9 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
             ZoneAndOffset zoneAndOffset = toZoneAndOffset(zonedDateTime);
             return ids.computeIfAbsent(zoneAndOffset, k -> {
                 int i = counter.getAndIncrement();
+                if (i >= zones.length) {
+                    throw new IllegalStateException("ZoneAndOffsetCache overflow");
+                }
                 zones[i] = zoneAndOffset;
                 return i;
             });
@@ -95,9 +98,12 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
         ZoneAndOffset zoneAndOffset = CACHE.getZoneId(extractOffsetId());
         if (zoneAndOffset.id == zoneAndOffset.offset) {
             // no preferred offset
-            return ZonedDateTime.of(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getNano(), zoneAndOffset.id);
+            return ZonedDateTime.of(extractYear(), extractMonth(), extractDay(),
+                    extractHour(), extractMinute(), extractSecond(), extractNano(),
+                    zoneAndOffset.id);
         } else {
-            LocalDateTime localDateTime = LocalDateTime.of(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getNano());
+            LocalDateTime localDateTime = LocalDateTime.of(extractYear(), extractMonth(), extractDay(),
+                    extractHour(), extractMinute(), extractSecond(), extractNano());
             return ZonedDateTime.ofLocal(localDateTime, zoneAndOffset.id, zoneAndOffset.offset);
         }
     }

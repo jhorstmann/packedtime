@@ -4,19 +4,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 public class PackedOffsetDateTime extends AbstractPackedDateTime {
-    private static final int MIN_OFFSET_MINUTES_INTERNAL = -(1 << (OFFSET_BITS - 1));
-    private static final int MAX_OFFSET_MINUTES_INTERNAL = (1 << (OFFSET_BITS - 1)) - 1;
-
-    private static final int MAX_OFFSET_HOURS = 18;
-    private static final int MIN_OFFSET_HOURS = -18;
-    private static final int MIN_OFFSET_MINUTES = MIN_OFFSET_HOURS * 60;
-    private static final int MAX_OFFSET_MINUTES = MAX_OFFSET_HOURS * 60;
-
-    static {
-        if (!(MIN_OFFSET_MINUTES_INTERNAL < MIN_OFFSET_MINUTES || MAX_OFFSET_MINUTES_INTERNAL > MAX_OFFSET_MINUTES)) {
-            throw new AssertionError("Insufficient bits to store offset range");
-        }
-    }
 
     private PackedOffsetDateTime(long value) {
         super(value);
@@ -27,25 +14,15 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
     }
 
     public static PackedOffsetDateTime fromOffsetDateTime(OffsetDateTime offsetDateTime) {
-        int offsetSeconds = offsetDateTime.getOffset().getTotalSeconds();
-        if (offsetSeconds % 60 != 0) {
-            throw new IllegalStateException("Time zone offset with second precision is not supported");
-        }
 
-        int offsetMinutes = offsetSeconds / 60;
-
-        if (offsetMinutes < MIN_OFFSET_MINUTES || offsetMinutes > MAX_OFFSET_MINUTES) {
-            throw new IllegalStateException("Zone offset outside of allowed range " + MIN_OFFSET_HOURS + " to " + MAX_OFFSET_HOURS);
-        }
-
-        return new PackedOffsetDateTime(encode(offsetDateTime.getYear(),
+        return new PackedOffsetDateTime(encodeWithOffsetSeconds(offsetDateTime.getYear(),
                 offsetDateTime.getMonthValue(),
                 offsetDateTime.getDayOfMonth(),
                 offsetDateTime.getHour(),
                 offsetDateTime.getMinute(),
                 offsetDateTime.getSecond(),
                 offsetDateTime.getNano(),
-                offsetMinutes + 18 * 60));
+                offsetDateTime.getOffset().getTotalSeconds()));
     }
 
     public static PackedOffsetDateTime parse(String str) {
@@ -58,7 +35,9 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
 
     public OffsetDateTime toOffsetDateTime() {
         ZoneOffset offset = ZoneOffset.ofTotalSeconds(getOffsetSecond());
-        return OffsetDateTime.of(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getNano(), offset);
+        return OffsetDateTime.of(extractYear(), extractMonth(), extractDay(),
+                extractHour(), extractMinute(), extractSecond(), extractNano(),
+                offset);
     }
 
     public int getYear() {
@@ -93,12 +72,8 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
         return extractMilli() * 1_000_000;
     }
 
-    private int getOffsetMinute() {
-        return (extractOffsetId() - 18*60);
-    }
-
     public int getOffsetSecond() {
-        return getOffsetMinute() * 60;
+        return extractOffsetSecond();
     }
 
     public String toString() {
@@ -111,7 +86,7 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
 
         i = appendTime(buf, i);
 
-        i = appendOffsetMinute(getOffsetMinute(), buf, i);
+        i = appendOffsetMinute(extractOffsetMinute(), buf, i);
 
         return new String(buf, 0, i);
     }

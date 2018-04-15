@@ -15,10 +15,20 @@ abstract class AbstractPackedDateTime {
     private static final int MIN_YEAR = -9999;
     private static final int MAX_YEAR = 9999;
 
+    private static final int MIN_OFFSET_MINUTES_INTERNAL = -(1 << (OFFSET_BITS - 1));
+    private static final int MAX_OFFSET_MINUTES_INTERNAL = (1 << (OFFSET_BITS - 1)) - 1;
+
+    private static final int MAX_OFFSET_HOURS = 18;
+    private static final int MIN_OFFSET_HOURS = -18;
+    private static final int MIN_OFFSET_MINUTES = MIN_OFFSET_HOURS * 60;
+    private static final int MAX_OFFSET_MINUTES = MAX_OFFSET_HOURS * 60;
 
     static {
         if (!(MIN_YEAR_INTERNAL < MIN_YEAR || MAX_YEAR_INTERNAL > MAX_YEAR)) {
             throw new AssertionError("Insufficient bits to store year range");
+        }
+        if (!(MIN_OFFSET_MINUTES_INTERNAL < MIN_OFFSET_MINUTES || MAX_OFFSET_MINUTES_INTERNAL > MAX_OFFSET_MINUTES)) {
+            throw new AssertionError("Insufficient bits to store offset range");
         }
     }
 
@@ -45,6 +55,19 @@ abstract class AbstractPackedDateTime {
                 | offsetId;
     }
 
+    static long encodeWithOffsetSeconds(int year, int month, int day, int hour, int minute, int second, int nano, int offsetSeconds) {
+        if (offsetSeconds % 60 != 0) {
+            throw new IllegalStateException("Time zone offset with second precision is not supported");
+        }
+
+        int offsetMinutes = offsetSeconds / 60;
+
+        if (offsetMinutes < MIN_OFFSET_MINUTES || offsetMinutes > MAX_OFFSET_MINUTES) {
+            throw new IllegalStateException("Zone offset outside of allowed range " + MIN_OFFSET_HOURS + " to " + MAX_OFFSET_HOURS);
+        }
+
+        return encode(year, month, day, hour, minute, second, nano, offsetMinutes + -MIN_OFFSET_MINUTES);
+    }
 
     int extractYear() {
         return (int) ((value >> (MONTH_BITS + DAY_BITS + HOUR_BITS + MINUTE_BITS + SECOND_BITS + MILLI_BITS + OFFSET_BITS)));
@@ -74,8 +97,20 @@ abstract class AbstractPackedDateTime {
         return (int) ((value >> (OFFSET_BITS)) & ((1 << MILLI_BITS) - 1));
     }
 
+    int extractNano() {
+        return extractMilli() * 1_000_000;
+    }
+
     int extractOffsetId() {
         return (int) (value & ((1 << OFFSET_BITS) - 1));
+    }
+
+    int extractOffsetMinute() {
+        return (extractOffsetId() + MIN_OFFSET_MINUTES);
+    }
+
+    int extractOffsetSecond() {
+        return extractOffsetMinute() * 60;
     }
 
     public long getValue() {

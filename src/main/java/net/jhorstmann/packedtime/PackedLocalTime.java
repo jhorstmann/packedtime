@@ -29,7 +29,7 @@ public class PackedLocalTime extends AbstractPackedDateTime {
     }
 
     public LocalTime toLocalTime() {
-        return LocalTime.of(getHour(), getMinute(), getSecond(), getNanos());
+        return LocalTime.of(extractHour(), extractMinute(), extractSecond(), extractNano());
     }
 
     public int getHour() {
@@ -49,7 +49,7 @@ public class PackedLocalTime extends AbstractPackedDateTime {
     }
 
     public int getNanos() {
-        return extractMilli() * 1_000_000;
+        return extractNano();
     }
 
     public String toString() {

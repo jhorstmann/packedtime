@@ -17,7 +17,7 @@ public class PackedLocalTimeTest {
 
     @Test
     public void min() {
-        LocalTime min = LocalTime.of(0, 0, 0);
+        LocalTime min = LocalTime.of(0, 0, 0, 0);
         PackedLocalTime packed = PackedLocalTime.fromLocalTime(min);
 
         Assertions.assertEquals(min, packed.toLocalTime());
@@ -26,7 +26,7 @@ public class PackedLocalTimeTest {
 
     @Test
     public void max() {
-        LocalTime max = LocalTime.of(23, 59, 59);
+        LocalTime max = LocalTime.of(23, 59, 59, 999_000_000);
         PackedLocalTime packed = PackedLocalTime.fromLocalTime(max);
 
         Assertions.assertEquals(max, packed.toLocalTime());

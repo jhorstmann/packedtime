@@ -31,7 +31,8 @@ public class PackedLocalDateTime extends AbstractPackedDateTime {
     }
 
     public LocalDateTime toLocalDateTime() {
-        return LocalDateTime.of(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getNano());
+        return LocalDateTime.of(extractYear(), extractMonth(), extractDay(),
+                extractHour(), extractMinute(), extractSecond(), extractNano());
     }
 
     public int getYear() {
