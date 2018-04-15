@@ -55,3 +55,14 @@ objects in the same way as `java.time`, use an explicit `Comparator`. For exampl
 Comparator<OffsetDateTime> comparator = Comparator.comparing(OffsetDateTime::toOffsetTime);
 ```
 
+## Benchmarks
+
+(Benchmarked using JMH on an i7-4702MQ notebook)
+
+```
+Benchmark                                                  Mode  Cnt      Score      Error  Units
+PackedOffsetDateTimeBenchmark.formatOffsetDateTime        thrpt    6   2876.980 ±   91.094  ops/s
+PackedOffsetDateTimeBenchmark.formatPackedOffsetDateTime  thrpt    6  18114.016 ± 2423.790  ops/s
+PackedOffsetDateTimeBenchmark.parseOffsetDateTime         thrpt    6    531.772 ±    7.471  ops/s
+PackedOffsetDateTimeBenchmark.parsePackedOffsetDateTime   thrpt    6   1507.251 ±   49.469  ops/s
+```
