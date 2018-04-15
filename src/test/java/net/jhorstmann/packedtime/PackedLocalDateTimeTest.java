@@ -13,6 +13,7 @@ public class PackedLocalDateTimeTest {
 
         Assertions.assertEquals(now, packed.toLocalDateTime());
         Assertions.assertEquals(now.toString(), packed.toString());
+        Assertions.assertEquals(packed, PackedLocalDateTime.parse(now.toString()));
     }
 
     @Test

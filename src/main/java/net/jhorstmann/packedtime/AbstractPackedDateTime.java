@@ -177,24 +177,21 @@ abstract class AbstractPackedDateTime {
         return i;
     }
 
-    int appendOffsetMinute(int offsetMinute, char[] buf, int i) {
-        if (offsetMinute == 0) {
-            buf[i++] = 'Z';
+    int appendOffsetMinute(int totalMinutes, char[] buf, int i) {
+        if (totalMinutes > 0) {
+            buf[i++] = '+';
         } else {
-            if (offsetMinute > 0) {
-                buf[i++] = '+';
-            } else {
-                buf[i++] = '-';
-                offsetMinute = -offsetMinute;
-            }
-            int offsetHour = offsetMinute / 60;
-            offsetMinute %= 60;
-            buf[i++] = (char) ('0' + offsetHour / 10);
-            buf[i++] = (char) ('0' + offsetHour % 10);
-            buf[i++] = ':';
-            buf[i++] = (char) ('0' + offsetMinute / 10);
-            buf[i++] = (char) ('0' + offsetMinute % 10);
+            buf[i++] = '-';
+            totalMinutes = -totalMinutes;
         }
+        int offsetHour = totalMinutes / 60;
+        totalMinutes %= 60;
+        buf[i++] = (char) ('0' + offsetHour / 10);
+        buf[i++] = (char) ('0' + offsetHour % 10);
+        buf[i++] = ':';
+        buf[i++] = (char) ('0' + totalMinutes / 10);
+        buf[i++] = (char) ('0' + totalMinutes % 10);
+
         return i;
     }
 

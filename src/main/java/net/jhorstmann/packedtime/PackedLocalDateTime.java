@@ -23,7 +23,7 @@ public class PackedLocalDateTime extends AbstractPackedDateTime {
     }
 
     public static PackedLocalDateTime parse(String str) {
-        return fromLocalDateTime(LocalDateTime.parse(str));
+        return DateTimeParser.parseLocalDateTime(str);
     }
 
     public static LocalDateTime toLocalDateTime(long value) {

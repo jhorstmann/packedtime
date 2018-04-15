@@ -22,7 +22,7 @@ public class PackedOffsetTime extends AbstractPackedDateTime {
     }
 
     public static PackedOffsetTime parse(String str) {
-        return fromOffsetTime(OffsetTime.parse(str));
+        return DateTimeParser.parseOffsetTime(str);
     }
 
     public static OffsetTime toOffsetTime(long value) {
@@ -68,7 +68,12 @@ public class PackedOffsetTime extends AbstractPackedDateTime {
 
         i = appendTime(buf, 0);
 
-        i = appendOffsetMinute(extractOffsetMinute(), buf, i);
+        int offsetMinute = extractOffsetMinute();
+        if (offsetMinute == 0) {
+            buf[i++] = 'Z';
+        } else {
+            i = appendOffsetMinute(offsetMinute, buf, i);
+        }
 
         return new String(buf, 0, i);
     }
