@@ -7,10 +7,11 @@ import java.util.regex.Pattern;
 
 class DateTimeParser {
     private static final String DATE = "(-?[0-9]{4})-([0-9]{2})-([0-9]{2})";
-    private static final String TIME = "([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\\.([0-9]{3}))?";
-    private static final String OFFSET = "(Z|[-+][0-9]{2}(?::[0-9]{2}))?";
+    private static final String TIME = "([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]{3}))?)?";
+    private static final String OFFSET = "(Z|[-+][0-9]{2}(?::[0-9]{2}))";
 
     private static final Pattern OFFSET_DATE_TIME_PATTERN = Pattern.compile(DATE + "T" + TIME + OFFSET);
+    private static final Pattern OFFSET_DATE_TIME_OPT_PATTERN = Pattern.compile(DATE + "T" + TIME + OFFSET + "?");
     private static final Pattern LOCAL_DATE_TIME_PATTERN = Pattern.compile(DATE + "T" + TIME);
     private static final Pattern LOCAL_DATE_PATTERN = Pattern.compile(DATE);
     private static final Pattern LOCAL_TIME_PATTERN = Pattern.compile(TIME);
@@ -27,8 +28,17 @@ class DateTimeParser {
         int day = parse2(str, matcher.start(3));
         int hour = parse2(str, matcher.start(4));
         int minute = parse2(str, matcher.start(5));
-        int second = parse2(str, matcher.start(6));
-        int nano = parseOptionalNano(str, matcher.start(7));
+
+        int secondStart = matcher.start(6);
+        int second, nano;
+        if (secondStart != -1) {
+            second = parse2(str, secondStart);
+            nano = parseOptionalNano(str, matcher.start(7));
+        } else {
+            second = 0;
+            nano = 0;
+        }
+
         int offsetMinute = parseOffsetMinute(str, matcher.start(8), matcher.end(8));
         int offsetSecond = offsetMinute * 60;
 
@@ -38,6 +48,46 @@ class DateTimeParser {
         long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
         return PackedOffsetDateTime.valueOf(encoded);
     }
+
+    static PackedOffsetDateTime parseOffsetDateTimeWithDefaultOffset(String str, int defaultOffsetSeconds) {
+        Matcher matcher = OFFSET_DATE_TIME_OPT_PATTERN.matcher(str);
+        if (!matcher.matches()) {
+            throw new DateTimeParseException("Could not parse OffsetDateTime " + str, str, 0);
+        }
+
+        int year = parseYear(str, matcher.start(1));
+        int month = parse2(str, matcher.start(2));
+        int day = parse2(str, matcher.start(3));
+        int hour = parse2(str, matcher.start(4));
+        int minute = parse2(str, matcher.start(5));
+
+        int secondStart = matcher.start(6);
+        int second, nano;
+        if (secondStart != -1) {
+            second = parse2(str, secondStart);
+            nano = parseOptionalNano(str, matcher.start(7));
+        } else {
+            second = 0;
+            nano = 0;
+        }
+
+        int offsetStart = matcher.start(8);
+
+        int offsetSecond;
+        if (offsetStart == -1) {
+            offsetSecond = defaultOffsetSeconds;
+        } else {
+            int offsetMinute = parseOffsetMinute(str, offsetStart, matcher.end(8));
+            offsetSecond = offsetMinute * 60;
+        }
+
+        validateDate(str, matcher, 1, year, month, day);
+        validateTime(str, matcher, 4, hour, minute, second);
+
+        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
+        return PackedOffsetDateTime.valueOf(encoded);
+    }
+
 
     static PackedLocalDateTime parseLocalDateTime(String str) {
         Matcher matcher = LOCAL_DATE_TIME_PATTERN.matcher(str);
@@ -50,8 +100,15 @@ class DateTimeParser {
         int day = parse2(str, matcher.start(3));
         int hour = parse2(str, matcher.start(4));
         int minute = parse2(str, matcher.start(5));
-        int second = parse2(str, matcher.start(6));
-        int nano = parseOptionalNano(str, matcher.start(7));
+        int secondStart = matcher.start(6);
+        int second, nano;
+        if (secondStart != -1) {
+            second = parse2(str, secondStart);
+            nano = parseOptionalNano(str, matcher.start(7));
+        } else {
+            second = 0;
+            nano = 0;
+        }
 
         validateDate(str, matcher, 1, year, month, day);
         validateTime(str, matcher, 4, hour, minute, second);
@@ -84,8 +141,15 @@ class DateTimeParser {
 
         int hour = parse2(str, matcher.start(1));
         int minute = parse2(str, matcher.start(2));
-        int second = parse2(str, matcher.start(3));
-        int nano = parseOptionalNano(str, matcher.start(4));
+        int secondStart = matcher.start(3);
+        int second, nano;
+        if (secondStart != -1) {
+            second = parse2(str, secondStart);
+            nano = parseOptionalNano(str, matcher.start(4));
+        } else {
+            second = 0;
+            nano = 0;
+        }
 
         validateTime(str, matcher, 1, hour, minute, second);
 
@@ -101,8 +165,17 @@ class DateTimeParser {
 
         int hour = parse2(str, matcher.start(1));
         int minute = parse2(str, matcher.start(2));
-        int second = parse2(str, matcher.start(3));
-        int nano = parseOptionalNano(str, matcher.start(4));
+
+        int secondStart = matcher.start(3);
+        int second, nano;
+        if (secondStart != -1) {
+            second = parse2(str, secondStart);
+            nano = parseOptionalNano(str, matcher.start(4));
+        } else {
+            second = 0;
+            nano = 0;
+        }
+
         int offsetMinute = parseOffsetMinute(str, matcher.start(5), matcher.end(5));
         int offsetSecond = offsetMinute * 60;
 

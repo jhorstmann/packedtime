@@ -98,7 +98,8 @@ public class DateTimeParserRandomTest {
                     int hour = r.nextInt(24);
                     int minute = r.nextInt(60);
                     int second = r.nextInt(60);
-                    int nano = r.nextInt(1000) * 1_000_000;
+                    int[] ints = {0, 1, 23, 456};
+                    int nano = ints[r.nextInt(ints.length)] * 1_000_000;
                     int offsetSeconds = (r.nextInt(36 * 60) - 18 * 60) * 60;
                     return OffsetDateTime.of(year, month, day,
                             hour, minute, second, nano,

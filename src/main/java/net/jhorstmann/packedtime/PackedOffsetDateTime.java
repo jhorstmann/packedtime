@@ -29,6 +29,10 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
         return DateTimeParser.parseOffsetDateTime(str);
     }
 
+    public static PackedOffsetDateTime parseWithDefaultUTC(String str) {
+        return DateTimeParser.parseOffsetDateTimeWithDefaultOffset(str, 0);
+    }
+
     public static OffsetDateTime toOffsetDateTime(long value) {
         return valueOf(value).toOffsetDateTime();
     }
