@@ -1,16 +1,18 @@
 package net.jhorstmann.packedtime;
 
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PackedZonedDateTime extends AbstractPackedDateTime {
 
     static class ZoneAndOffset {
-        private final ZoneId id;
-        private final ZoneOffset offset;
+        final ZoneId id;
+        final ZoneOffset offset;
 
         ZoneAndOffset(ZoneId id, ZoneOffset offset) {
             this.id = id;
@@ -37,14 +39,14 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
     }
 
     static class ZoneAndOffsetCache {
-        private final AtomicInteger counter = new AtomicInteger();
-        private final Map<ZoneAndOffset, Integer> ids = new ConcurrentHashMap<>();
+        private int counter = 0;
+        private final Map<ZoneAndOffset, Integer> ids = new HashMap<>();
         private final ZoneAndOffset[] zones = new ZoneAndOffset[(1 << AbstractPackedDateTime.OFFSET_BITS)-1];
 
-        int getId(ZonedDateTime zonedDateTime) {
+        synchronized int getId(ZonedDateTime zonedDateTime) {
             ZoneAndOffset zoneAndOffset = toZoneAndOffset(zonedDateTime);
             return ids.computeIfAbsent(zoneAndOffset, k -> {
-                int i = counter.getAndIncrement();
+                int i = counter++;
                 if (i >= zones.length) {
                     throw new IllegalStateException("ZoneAndOffsetCache overflow");
                 }
@@ -53,7 +55,7 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
             });
         }
 
-        ZoneAndOffset getZoneId(int id) {
+        synchronized ZoneAndOffset getZoneId(int id) {
             return zones[id];
         }
 
