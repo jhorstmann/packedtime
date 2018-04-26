@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 class DateTimeParser {
     private static final String DATE = "(-?[0-9]{4})-([0-9]{2})-([0-9]{2})";
-    private static final String TIME = "([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]{3}))?)?";
+    private static final String TIME = "([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]{1,9}))?)?";
     private static final String OFFSET = "(Z|[-+][0-9]{2}(?::[0-9]{2}))";
 
     private static final Pattern OFFSET_DATE_TIME_PATTERN = Pattern.compile(DATE + "T" + TIME + OFFSET);
@@ -33,7 +33,7 @@ class DateTimeParser {
         int second, nano;
         if (secondStart != -1) {
             second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7));
+            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
         } else {
             second = 0;
             nano = 0;
@@ -65,7 +65,7 @@ class DateTimeParser {
         int second, nano;
         if (secondStart != -1) {
             second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7));
+            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
         } else {
             second = 0;
             nano = 0;
@@ -104,7 +104,7 @@ class DateTimeParser {
         int second, nano;
         if (secondStart != -1) {
             second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7));
+            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
         } else {
             second = 0;
             nano = 0;
@@ -145,7 +145,7 @@ class DateTimeParser {
         int second, nano;
         if (secondStart != -1) {
             second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(4));
+            nano = parseOptionalNano(str, matcher.start(4), matcher.end(4));
         } else {
             second = 0;
             nano = 0;
@@ -170,7 +170,7 @@ class DateTimeParser {
         int second, nano;
         if (secondStart != -1) {
             second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(4));
+            nano = parseOptionalNano(str, matcher.start(4), matcher.end(4));
         } else {
             second = 0;
             nano = 0;
@@ -231,9 +231,14 @@ class DateTimeParser {
         }
     }
 
-    private static int parseOptionalNano(String str, int start) {
+    private static int parseOptionalNano(String str, int start, int end) {
         if (start != -1) {
-            return parse3(str, start) * 1_000_000;
+            int digits = end-start;
+            switch (digits) {
+                case 1: return digit(str, start) * 100_000_000;
+                case 2: return parse2(str, start) * 10_000_000;
+                default: return parse3(str, start) * 1_000_000;
+            }
         } else {
             return 0;
         }
