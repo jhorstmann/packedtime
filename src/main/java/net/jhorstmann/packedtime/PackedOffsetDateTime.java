@@ -1,6 +1,7 @@
 package net.jhorstmann.packedtime;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 public class PackedOffsetDateTime extends AbstractPackedDateTime {
@@ -31,6 +32,10 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
 
     public static PackedOffsetDateTime parseWithDefaultUTC(String str) {
         return DateTimeParser.parseOffsetDateTimeWithDefaultOffset(str, 0);
+    }
+
+    public static PackedOffsetDateTime parseWithDefaultZone(String str, ZoneId zone) {
+        return DateTimeParser.parseOffsetDateTimeWithDefaultZone(str, zone);
     }
 
     public static OffsetDateTime toOffsetDateTime(long value) {

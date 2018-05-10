@@ -1,6 +1,9 @@
 package net.jhorstmann.packedtime;
 
+import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,11 +42,11 @@ class DateTimeParser {
             nano = 0;
         }
 
-        int offsetMinute = parseOffsetMinute(str, matcher.start(8), matcher.end(8));
-        int offsetSecond = offsetMinute * 60;
-
         validateDate(str, matcher, 1, year, month, day);
         validateTime(str, matcher, 4, hour, minute, second);
+
+        int offsetMinute = parseOffsetMinute(str, matcher.start(8), matcher.end(8));
+        int offsetSecond = offsetMinute * 60;
 
         long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
         return PackedOffsetDateTime.valueOf(encoded);
@@ -71,6 +74,9 @@ class DateTimeParser {
             nano = 0;
         }
 
+        validateDate(str, matcher, 1, year, month, day);
+        validateTime(str, matcher, 4, hour, minute, second);
+
         int offsetStart = matcher.start(8);
 
         int offsetSecond;
@@ -81,13 +87,49 @@ class DateTimeParser {
             offsetSecond = offsetMinute * 60;
         }
 
-        validateDate(str, matcher, 1, year, month, day);
-        validateTime(str, matcher, 4, hour, minute, second);
-
         long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
         return PackedOffsetDateTime.valueOf(encoded);
     }
 
+    static PackedOffsetDateTime parseOffsetDateTimeWithDefaultZone(String str, ZoneId zoneId) {
+        Matcher matcher = OFFSET_DATE_TIME_OPT_PATTERN.matcher(str);
+        if (!matcher.matches()) {
+            throw new DateTimeParseException("Could not parse OffsetDateTime " + str, str, 0);
+        }
+
+        int year = parseYear(str, matcher.start(1));
+        int month = parse2(str, matcher.start(2));
+        int day = parse2(str, matcher.start(3));
+        int hour = parse2(str, matcher.start(4));
+        int minute = parse2(str, matcher.start(5));
+
+        int secondStart = matcher.start(6);
+        int second, nano;
+        if (secondStart != -1) {
+            second = parse2(str, secondStart);
+            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
+        } else {
+            second = 0;
+            nano = 0;
+        }
+
+        validateDate(str, matcher, 1, year, month, day);
+        validateTime(str, matcher, 4, hour, minute, second);
+
+        int offsetStart = matcher.start(8);
+
+        int offsetSecond;
+        if (offsetStart == -1) {
+            ZoneOffset offset = zoneId.getRules().getOffset(LocalDateTime.of(year, month, day, hour, minute, second, nano));
+            offsetSecond = offset.getTotalSeconds();
+        } else {
+            int offsetMinute = parseOffsetMinute(str, offsetStart, matcher.end(8));
+            offsetSecond = offsetMinute * 60;
+        }
+
+        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
+        return PackedOffsetDateTime.valueOf(encoded);
+    }
 
     static PackedLocalDateTime parseLocalDateTime(String str) {
         Matcher matcher = LOCAL_DATE_TIME_PATTERN.matcher(str);
@@ -176,10 +218,10 @@ class DateTimeParser {
             nano = 0;
         }
 
+        validateTime(str, matcher, 1, hour, minute, second);
+
         int offsetMinute = parseOffsetMinute(str, matcher.start(5), matcher.end(5));
         int offsetSecond = offsetMinute * 60;
-
-        validateTime(str, matcher, 1, hour, minute, second);
 
         long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(0, 0, 0, hour, minute, second, nano, offsetSecond);
         return PackedOffsetTime.valueOf(encoded);
