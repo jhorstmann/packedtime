@@ -53,11 +53,11 @@ public class PackedLocalTime extends AbstractPackedDateTime {
     }
 
     public String toString() {
-        char[] buf = new char[16];
+        byte[] buf = new byte[16];
 
         int len = appendTime(buf, 0);
 
-        return new String(buf, 0, len);
+        return ascii(buf, len);
     }
 
 }

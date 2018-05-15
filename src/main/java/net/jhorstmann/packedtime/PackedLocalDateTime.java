@@ -68,7 +68,7 @@ public class PackedLocalDateTime extends AbstractPackedDateTime {
     }
 
     public String toString() {
-        char[] buf = new char[32];
+        byte[] buf = new byte[32];
         int i = 0;
 
         i = appendDate(buf, i);
@@ -77,7 +77,7 @@ public class PackedLocalDateTime extends AbstractPackedDateTime {
 
         i = appendTime(buf, i);
 
-        return new String(buf, 0, i);
+        return ascii(buf, i);
     }
 
 

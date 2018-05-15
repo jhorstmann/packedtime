@@ -63,7 +63,7 @@ public class PackedOffsetTime extends AbstractPackedDateTime {
     }
 
     public String toString() {
-        char[] buf = new char[20];
+        byte[] buf = new byte[20];
         int i;
 
         i = appendTime(buf, 0);
@@ -75,7 +75,7 @@ public class PackedOffsetTime extends AbstractPackedDateTime {
             i = appendOffsetMinute(offsetMinute, buf, i);
         }
 
-        return new String(buf, 0, i);
+        return ascii(buf, i);
     }
 
 }

@@ -122,7 +122,7 @@ abstract class AbstractPackedDateTime {
         return Long.toHexString(value);
     }
 
-    int appendDate(char[] buf, int i) {
+    int appendDate(byte[] buf, int i) {
         int year = extractYear();
         int month = extractMonth();
         int day = extractDay();
@@ -132,53 +132,53 @@ abstract class AbstractPackedDateTime {
             year = -year;
         }
 
-        buf[i++] = (char) ('0' + year / 1000);
-        buf[i++] = (char) ('0' + year / 100 % 10);
-        buf[i++] = (char) ('0' + year / 10 % 10);
-        buf[i++] = (char) ('0' + year % 10);
+        buf[i++] = (byte) ('0' + year / 1000);
+        buf[i++] = (byte) ('0' + year / 100 % 10);
+        buf[i++] = (byte) ('0' + year / 10 % 10);
+        buf[i++] = (byte) ('0' + year % 10);
         buf[i++] = '-';
 
-        buf[i++] = (char) ('0' + month / 10);
-        buf[i++] = (char) ('0' + month % 10);
+        buf[i++] = (byte) ('0' + month / 10);
+        buf[i++] = (byte) ('0' + month % 10);
         buf[i++] = '-';
 
-        buf[i++] = (char) ('0' + day / 10);
-        buf[i++] = (char) ('0' + day % 10);
+        buf[i++] = (byte) ('0' + day / 10);
+        buf[i++] = (byte) ('0' + day % 10);
         return i;
     }
 
-    int appendTime(char[] buf, int i) {
+    int appendTime(byte[] buf, int i) {
         int hour = extractHour();
         int minute = extractMinute();
         int second = extractSecond();
         int milli = extractMilli();
 
 
-        buf[i++] = (char) ('0' + hour / 10);
-        buf[i++] = (char) ('0' + hour % 10);
+        buf[i++] = (byte) ('0' + hour / 10);
+        buf[i++] = (byte) ('0' + hour % 10);
         buf[i++] = ':';
 
-        buf[i++] = (char) ('0' + minute / 10);
-        buf[i++] = (char) ('0' + minute % 10);
+        buf[i++] = (byte) ('0' + minute / 10);
+        buf[i++] = (byte) ('0' + minute % 10);
 
         if (second > 0 || milli > 0) {
             buf[i++] = ':';
 
-            buf[i++] = (char) ('0' + second / 10);
-            buf[i++] = (char) ('0' + second % 10);
+            buf[i++] = (byte) ('0' + second / 10);
+            buf[i++] = (byte) ('0' + second % 10);
         }
 
         if (milli > 0) {
             buf[i++] = '.';
-            buf[i++] = (char) ('0' + milli / 100 % 10);
-            buf[i++] = (char) ('0' + milli / 10 % 10);
-            buf[i++] = (char) ('0' + milli % 10);
+            buf[i++] = (byte) ('0' + milli / 100 % 10);
+            buf[i++] = (byte) ('0' + milli / 10 % 10);
+            buf[i++] = (byte) ('0' + milli % 10);
         }
         return i;
     }
 
-    int appendOffsetMinute(int totalMinutes, char[] buf, int i) {
-        if (totalMinutes > 0) {
+    int appendOffsetMinute(int totalMinutes, byte[] buf, int i) {
+        if (totalMinutes >= 0) {
             buf[i++] = '+';
         } else {
             buf[i++] = '-';
@@ -186,13 +186,19 @@ abstract class AbstractPackedDateTime {
         }
         int offsetHour = totalMinutes / 60;
         totalMinutes %= 60;
-        buf[i++] = (char) ('0' + offsetHour / 10);
-        buf[i++] = (char) ('0' + offsetHour % 10);
+        buf[i++] = (byte) ('0' + offsetHour / 10);
+        buf[i++] = (byte) ('0' + offsetHour % 10);
         buf[i++] = ':';
-        buf[i++] = (char) ('0' + totalMinutes / 10);
-        buf[i++] = (char) ('0' + totalMinutes % 10);
+        buf[i++] = (byte) ('0' + totalMinutes / 10);
+        buf[i++] = (byte) ('0' + totalMinutes % 10);
 
         return i;
+    }
+
+    @SuppressWarnings("deprecation")
+    static String ascii(byte[] buf, int len) {
+        // deprecated constructor should be faster because it can directly create a compact string
+        return new String(buf, 0, 0, len);
     }
 
     @Override

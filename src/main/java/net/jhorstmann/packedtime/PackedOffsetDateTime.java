@@ -85,8 +85,18 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
         return extractOffsetSecond();
     }
 
+    private int appendOffset(byte[] buf, int i) {
+        int offsetMinute = extractOffsetMinute();
+        if (offsetMinute == 0) {
+            buf[i++] = 'Z';
+        } else {
+            i = appendOffsetMinute(offsetMinute, buf, i);
+        }
+        return i;
+    }
+
     public String toString() {
-        char[] buf = new char[32];
+        byte[] buf = new byte[32];
         int i = 0;
 
         i = appendDate(buf, i);
@@ -95,14 +105,9 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
 
         i = appendTime(buf, i);
 
-        int offsetMinute = extractOffsetMinute();
-        if (offsetMinute == 0) {
-            buf[i++] = 'Z';
-        } else {
-            i = appendOffsetMinute(offsetMinute, buf, i);
-        }
+        i = appendOffset(buf, i);
 
-        return new String(buf, 0, i);
+        return ascii(buf, i);
     }
 
 

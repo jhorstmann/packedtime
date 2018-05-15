@@ -153,7 +153,7 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
     }
 
     public String toString() {
-        char[] buf = new char[36];
+        byte[] buf = new byte[36];
         int i = 0;
 
         i = appendDate(buf, i);
@@ -179,18 +179,18 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
 
             if (offsetSecond != 0) {
                 buf[i++] = ':';
-                buf[i++] = (char) ('0' + offsetSecond / 10);
-                buf[i++] = (char) ('0' + offsetSecond % 10);
+                buf[i++] = (byte) ('0' + offsetSecond / 10);
+                buf[i++] = (byte) ('0' + offsetSecond % 10);
             }
         }
 
-        String result = new String(buf, 0, i);
+        String result = ascii(buf, i);
 
         if (zoneId != offset) {
-            result += '[' + zoneId.toString() + ']';
+            return result + '[' + zoneId.toString() + ']';
+        } else {
+            return result;
         }
-
-        return result;
     }
 
 
