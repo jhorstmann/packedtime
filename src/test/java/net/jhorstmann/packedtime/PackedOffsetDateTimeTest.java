@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Comparator;
 
 public class PackedOffsetDateTimeTest {
     @Test

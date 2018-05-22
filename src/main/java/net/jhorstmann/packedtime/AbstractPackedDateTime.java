@@ -144,6 +144,7 @@ abstract class AbstractPackedDateTime {
 
         buf[i++] = (char) ('0' + day / 10);
         buf[i++] = (char) ('0' + day % 10);
+
         return i;
     }
 
@@ -152,7 +153,6 @@ abstract class AbstractPackedDateTime {
         int minute = extractMinute();
         int second = extractSecond();
         int milli = extractMilli();
-
 
         buf[i++] = (char) ('0' + hour / 10);
         buf[i++] = (char) ('0' + hour % 10);
@@ -166,31 +166,33 @@ abstract class AbstractPackedDateTime {
 
             buf[i++] = (char) ('0' + second / 10);
             buf[i++] = (char) ('0' + second % 10);
+
+            if (milli > 0) {
+                buf[i++] = '.';
+                buf[i++] = (char) ('0' + milli / 100 % 10);
+                buf[i++] = (char) ('0' + milli / 10 % 10);
+                buf[i++] = (char) ('0' + milli % 10);
+            }
         }
 
-        if (milli > 0) {
-            buf[i++] = '.';
-            buf[i++] = (char) ('0' + milli / 100 % 10);
-            buf[i++] = (char) ('0' + milli / 10 % 10);
-            buf[i++] = (char) ('0' + milli % 10);
-        }
         return i;
     }
 
     int appendOffsetMinute(int totalMinutes, char[] buf, int i) {
-        if (totalMinutes > 0) {
+        if (totalMinutes >= 0) {
             buf[i++] = '+';
         } else {
             buf[i++] = '-';
             totalMinutes = -totalMinutes;
         }
         int offsetHour = totalMinutes / 60;
-        totalMinutes %= 60;
+        int offsetMinute = totalMinutes % 60;
+
         buf[i++] = (char) ('0' + offsetHour / 10);
         buf[i++] = (char) ('0' + offsetHour % 10);
         buf[i++] = ':';
-        buf[i++] = (char) ('0' + totalMinutes / 10);
-        buf[i++] = (char) ('0' + totalMinutes % 10);
+        buf[i++] = (char) ('0' + offsetMinute / 10);
+        buf[i++] = (char) ('0' + offsetMinute % 10);
 
         return i;
     }
