@@ -72,6 +72,16 @@ public class DateTimeParserRandomTest {
     }
 
     private static final List<String> ZONES = new ArrayList<>(ZoneId.getAvailableZoneIds());
+    static {
+        try {
+            Runtime.class.getDeclaredMethod("version");
+            // java8 or lower, DateTimeFormatter has a bug regarding GMT0 time zone
+            // see https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8138664
+            ZONES.remove("GMT0");
+        } catch (NoSuchMethodException e) {
+            // we are on at least java9
+        }
+    }
 
     @ParameterizedTest
     @MethodSource("input")
