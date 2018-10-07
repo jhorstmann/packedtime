@@ -55,6 +55,24 @@ public class DateTimeParserTest {
     }
 
     @Test
+    public void shouldParseWithoutSeconds() {
+        String str = "2018-04-26T21:31+02:00";
+        PackedOffsetDateTime parsed = DateTimeParser.parseOffsetDateTime(str);
+
+        Assertions.assertEquals(0, parsed.getSecond());
+        Assertions.assertEquals(0, parsed.getMilliSecond());
+    }
+
+    @Test
+    public void shouldParseLocalDateTimeWithoutSeconds() {
+        String str = "2018-04-26T21:31";
+        PackedLocalDateTime parsed = DateTimeParser.parseLocalDateTime(str);
+
+        Assertions.assertEquals(0, parsed.getSecond());
+        Assertions.assertEquals(0, parsed.getMilliSecond());
+    }
+
+    @Test
     public void shouldParseWithDefaultOffsetSeconds() {
         String str = "2018-04-26T21:31:42.123";
         PackedOffsetDateTime parsed = DateTimeParser.parseOffsetDateTimeWithDefaultOffset(str, 2*60*60);

@@ -5,240 +5,252 @@ import java.time.Year;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 class DateTimeParser {
-    private static final String DATE = "(-?[0-9]{4})-([0-9]{2})-([0-9]{2})";
-    private static final String TIME = "([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]{1,9}))?)?";
-    private static final String OFFSET = "(Z|[-+][0-9]{2}(?::[0-9]{2}))";
 
-    private static final Pattern OFFSET_DATE_TIME_PATTERN = Pattern.compile(DATE + "T" + TIME + OFFSET);
-    private static final Pattern OFFSET_DATE_TIME_OPT_PATTERN = Pattern.compile(DATE + "T" + TIME + OFFSET + "?");
-    private static final Pattern LOCAL_DATE_TIME_PATTERN = Pattern.compile(DATE + "T" + TIME);
-    private static final Pattern LOCAL_DATE_PATTERN = Pattern.compile(DATE);
-    private static final Pattern LOCAL_TIME_PATTERN = Pattern.compile(TIME);
-    private static final Pattern OFFSET_TIME_PATTERN = Pattern.compile(TIME + OFFSET);
+    static class Index {
+        private int i;
+
+        Index() {
+            this.i = 0;
+        }
+
+        int get() {
+            return i;
+        }
+
+        void inc() {
+            ++i;
+        }
+
+        void inc(int c) {
+            i += c;
+        }
+
+        int postInc() {
+            return i++;
+        }
+
+        int postInc(int c) {
+            int r = i;
+            this.i = r + c;
+            return r;
+        }
+    }
+
+    static class Date {
+        int year, month, day;
+
+        public Date(int year, int month, int day) {
+            this.year = year;
+            this.month = month;
+            this.day = day;
+        }
+    }
+
+    static class Time {
+        int hour, minute, second, nano;
+
+        public Time(int hour, int minute, int second, int nano) {
+            this.hour = hour;
+            this.minute = minute;
+            this.second = second;
+            this.nano = nano;
+        }
+    }
+
+    private static Date parseDate(String str, Index idx) {
+        int year, yearStart;
+
+        if (str.charAt(idx.get()) == '-') {
+            idx.inc();
+            yearStart = 1;
+            year = -parseYear(str, idx);
+        } else {
+            yearStart = 0;
+            year = parseYear(str, idx);
+        }
+
+        expect(str, idx.postInc(), '-');
+
+        int month = parse2(str, idx.postInc(2));
+        expect(str, idx.postInc(), '-');
+
+        int day = parse2(str, idx.postInc(2));
+
+        validateDate(str, yearStart, year, month, day);
+
+        return new Date(year, month, day);
+    }
+
+    private static Time parseTime(String str, Index idx) {
+        int timeStart = idx.get();
+
+        int hour = parse2(str, idx.postInc(2));
+        expect(str, idx.postInc(), ':');
+
+        int minute = parse2(str, idx.postInc(2));
+
+        int second = 0, nano = 0;
+        if (idx.get() < str.length()) {
+            char ch = str.charAt(idx.get());
+            if (ch == '.') {
+                idx.inc();
+                nano = parseNano(str, idx);
+            } else if (ch == ':') {
+                idx.inc();
+                second = parse2(str, idx.postInc(2));
+                if (idx.get() < str.length() && str.charAt(idx.get()) == '.') {
+                    idx.inc();
+                    nano = parseNano(str, idx);
+                }
+            }
+        }
+
+        validateTime(str, timeStart, hour, minute, second);
+
+        return new Time(hour, minute, second, nano);
+    }
 
     static PackedOffsetDateTime parseOffsetDateTime(String str) {
-        Matcher matcher = OFFSET_DATE_TIME_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse OffsetDateTime " + str, str, 0);
-        }
 
-        int year = parseYear(str, matcher.start(1));
-        int month = parse2(str, matcher.start(2));
-        int day = parse2(str, matcher.start(3));
-        int hour = parse2(str, matcher.start(4));
-        int minute = parse2(str, matcher.start(5));
+        Index idx = new Index();
 
-        int secondStart = matcher.start(6);
-        int second, nano;
-        if (secondStart != -1) {
-            second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
-        } else {
-            second = 0;
-            nano = 0;
-        }
+        Date date = parseDate(str, idx);
 
-        validateDate(str, matcher, 1, year, month, day);
-        validateTime(str, matcher, 4, hour, minute, second);
+        expect(str, idx.postInc(), 'T');
 
-        int offsetMinute = parseOffsetMinute(str, matcher.start(8), matcher.end(8));
+        Time time = parseTime(str, idx);
+
+        int offsetMinute = parseOffsetMinute(str, idx);
         int offsetSecond = offsetMinute * 60;
 
-        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
+        if (str.length() > idx.get()) {
+            throw new DateTimeParseException("trailing characters", str, idx.get());
+        }
+
+        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nano, offsetSecond);
         return PackedOffsetDateTime.valueOf(encoded);
     }
 
     static PackedOffsetDateTime parseOffsetDateTimeWithDefaultOffset(String str, int defaultOffsetSeconds) {
-        Matcher matcher = OFFSET_DATE_TIME_OPT_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse OffsetDateTime " + str, str, 0);
-        }
+        Index idx = new Index();
 
-        int year = parseYear(str, matcher.start(1));
-        int month = parse2(str, matcher.start(2));
-        int day = parse2(str, matcher.start(3));
-        int hour = parse2(str, matcher.start(4));
-        int minute = parse2(str, matcher.start(5));
+        Date date = parseDate(str, idx);
 
-        int secondStart = matcher.start(6);
-        int second, nano;
-        if (secondStart != -1) {
-            second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
-        } else {
-            second = 0;
-            nano = 0;
-        }
+        expect(str, idx.postInc(), 'T');
 
-        validateDate(str, matcher, 1, year, month, day);
-        validateTime(str, matcher, 4, hour, minute, second);
-
-        int offsetStart = matcher.start(8);
+        Time time = parseTime(str, idx);
 
         int offsetSecond;
-        if (offsetStart == -1) {
-            offsetSecond = defaultOffsetSeconds;
-        } else {
-            int offsetMinute = parseOffsetMinute(str, offsetStart, matcher.end(8));
+        if (str.length() > idx.get()) {
+            int offsetMinute = parseOffsetMinute(str, idx);
             offsetSecond = offsetMinute * 60;
+        } else {
+            offsetSecond = defaultOffsetSeconds;
         }
 
-        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
+        if (str.length() > idx.get()) {
+            throw new DateTimeParseException("trailing characters", str, idx.get());
+        }
+
+        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nano, offsetSecond);
         return PackedOffsetDateTime.valueOf(encoded);
     }
 
     static PackedOffsetDateTime parseOffsetDateTimeWithDefaultZone(String str, ZoneId zoneId) {
-        Matcher matcher = OFFSET_DATE_TIME_OPT_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse OffsetDateTime " + str, str, 0);
-        }
+        Index idx = new Index();
 
-        int year = parseYear(str, matcher.start(1));
-        int month = parse2(str, matcher.start(2));
-        int day = parse2(str, matcher.start(3));
-        int hour = parse2(str, matcher.start(4));
-        int minute = parse2(str, matcher.start(5));
+        Date date = parseDate(str, idx);
 
-        int secondStart = matcher.start(6);
-        int second, nano;
-        if (secondStart != -1) {
-            second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
-        } else {
-            second = 0;
-            nano = 0;
-        }
+        expect(str, idx.postInc(), 'T');
 
-        validateDate(str, matcher, 1, year, month, day);
-        validateTime(str, matcher, 4, hour, minute, second);
-
-        int offsetStart = matcher.start(8);
+        Time time = parseTime(str, idx);
 
         int offsetSecond;
-        if (offsetStart == -1) {
-            ZoneOffset offset = zoneId.getRules().getOffset(LocalDateTime.of(year, month, day, hour, minute, second, nano));
-            offsetSecond = offset.getTotalSeconds();
-        } else {
-            int offsetMinute = parseOffsetMinute(str, offsetStart, matcher.end(8));
+        if (str.length() > idx.get()) {
+            int offsetMinute = parseOffsetMinute(str, idx);
             offsetSecond = offsetMinute * 60;
+        } else {
+            ZoneOffset offset = zoneId.getRules().getOffset(LocalDateTime.of(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nano));
+            offsetSecond = offset.getTotalSeconds();
         }
 
-        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(year, month, day, hour, minute, second, nano, offsetSecond);
+        if (str.length() > idx.get()) {
+            throw new DateTimeParseException("trailing characters", str, idx.get());
+        }
+
+        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nano, offsetSecond);
         return PackedOffsetDateTime.valueOf(encoded);
     }
 
     static PackedLocalDateTime parseLocalDateTime(String str) {
-        Matcher matcher = LOCAL_DATE_TIME_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse LocalDateTime " + str, str, 0);
+        Index idx = new Index();
+
+        Date date = parseDate(str, idx);
+
+        expect(str, idx.postInc(), 'T');
+
+        Time time = parseTime(str, idx);
+
+        if (str.length() > idx.get()) {
+            throw new DateTimeParseException("trailing characters", str, idx.get());
         }
 
-        int year = parseYear(str, matcher.start(1));
-        int month = parse2(str, matcher.start(2));
-        int day = parse2(str, matcher.start(3));
-        int hour = parse2(str, matcher.start(4));
-        int minute = parse2(str, matcher.start(5));
-        int secondStart = matcher.start(6);
-        int second, nano;
-        if (secondStart != -1) {
-            second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(7), matcher.end(7));
-        } else {
-            second = 0;
-            nano = 0;
-        }
-
-        validateDate(str, matcher, 1, year, month, day);
-        validateTime(str, matcher, 4, hour, minute, second);
-
-        long encoded = AbstractPackedDateTime.encode(year, month, day, hour, minute, second, nano, 0);
+        long encoded = AbstractPackedDateTime.encode(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nano, 0);
         return PackedLocalDateTime.valueOf(encoded);
     }
 
     static PackedLocalDate parseLocalDate(String str) {
-        Matcher matcher = LOCAL_DATE_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse LocalDate " + str, str, 0);
+        Index idx = new Index();
+
+        Date date = parseDate(str, idx);
+
+        if (str.length() > idx.get()) {
+            throw new DateTimeParseException("trailing characters", str, idx.get());
         }
 
-        int year = parseYear(str, matcher.start(1));
-        int month = parse2(str, matcher.start(2));
-        int day = parse2(str, matcher.start(3));
-
-        validateDate(str, matcher, 1, year, month, day);
-
-        long encoded = AbstractPackedDateTime.encode(year, month, day, 0, 0, 0, 0, 0);
+        long encoded = AbstractPackedDateTime.encode(date.year, date.month, date.day, 0, 0, 0, 0, 0);
         return PackedLocalDate.valueOf(encoded);
     }
 
     static PackedLocalTime parseLocalTime(String str) {
-        Matcher matcher = LOCAL_TIME_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse LocalTime " + str, str, 0);
+        Index idx = new Index();
+
+        Time time = parseTime(str, idx);
+
+        if (str.length() > idx.get()) {
+            throw new DateTimeParseException("trailing characters", str, idx.get());
         }
 
-        int hour = parse2(str, matcher.start(1));
-        int minute = parse2(str, matcher.start(2));
-        int secondStart = matcher.start(3);
-        int second, nano;
-        if (secondStart != -1) {
-            second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(4), matcher.end(4));
-        } else {
-            second = 0;
-            nano = 0;
-        }
-
-        validateTime(str, matcher, 1, hour, minute, second);
-
-        long encoded = AbstractPackedDateTime.encode(0, 0, 0, hour, minute, second, nano, 0);
+        long encoded = AbstractPackedDateTime.encode(0, 0, 0, time.hour, time.minute, time.second, time.nano, 0);
         return PackedLocalTime.valueOf(encoded);
     }
 
     static PackedOffsetTime parseOffsetTime(String str) {
-        Matcher matcher = OFFSET_TIME_PATTERN.matcher(str);
-        if (!matcher.matches()) {
-            throw new DateTimeParseException("Could not parse LocalOffsetTime " + str, str, 0);
-        }
+        Index idx = new Index();
 
-        int hour = parse2(str, matcher.start(1));
-        int minute = parse2(str, matcher.start(2));
+        Time time = parseTime(str, idx);
 
-        int secondStart = matcher.start(3);
-        int second, nano;
-        if (secondStart != -1) {
-            second = parse2(str, secondStart);
-            nano = parseOptionalNano(str, matcher.start(4), matcher.end(4));
-        } else {
-            second = 0;
-            nano = 0;
-        }
-
-        validateTime(str, matcher, 1, hour, minute, second);
-
-        int offsetMinute = parseOffsetMinute(str, matcher.start(5), matcher.end(5));
+        int offsetMinute = parseOffsetMinute(str, idx);
         int offsetSecond = offsetMinute * 60;
 
-        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(0, 0, 0, hour, minute, second, nano, offsetSecond);
+        long encoded = AbstractPackedDateTime.encodeWithOffsetSeconds(0, 0, 0, time.hour, time.minute, time.second, time.nano, offsetSecond);
         return PackedOffsetTime.valueOf(encoded);
     }
 
-    private static void validateDate(String str, Matcher matcher, int firstGroup, int year, int month, int day) {
+    private static void validateDate(String str, int yearStart, int year, int month, int day) {
         if (month < 1 || month > 12) {
-            throw new DateTimeParseException("Month out of range", str, matcher.start(firstGroup+1));
+            throw new DateTimeParseException("Month out of range", str, yearStart + 4 + 1);
         }
 
         if (day < 1 || day > 31) {
-            throw new DateTimeParseException("Day out of range", str, matcher.start(firstGroup + 2));
+            throw new DateTimeParseException("Day out of range", str, yearStart + 9);
         } else {
             switch (month) {
                 case 2:
                     if (!Year.isLeap(year) && day > 28 || day > 29) {
-                        throw new DateTimeParseException("Day out of range", str, matcher.start(firstGroup + 2));
+                        throw new DateTimeParseException("Day out of range", str, yearStart + 9);
                     }
                     break;
                 case 4:
@@ -246,68 +258,91 @@ class DateTimeParser {
                 case 9:
                 case 11:
                     if (day > 30) {
-                        throw new DateTimeParseException("Day out of range", str, matcher.start(firstGroup +2));
+                        throw new DateTimeParseException("Day out of range", str, yearStart + 9);
                     }
                     break;
             }
         }
     }
 
-    private static void validateTime(String str, Matcher matcher, int firstGroup, int hour, int minute, int second) {
+    private static void validateTime(String str, int timeStart, int hour, int minute, int second) {
         if (hour > 23) {
-            throw new DateTimeParseException("Hour out of range", str, matcher.start(firstGroup));
+            throw new DateTimeParseException("Hour out of range", str, timeStart);
         }
         if (minute > 59) {
-            throw new DateTimeParseException("Minute out of range", str, matcher.start(firstGroup+1));
+            throw new DateTimeParseException("Minute out of range", str, timeStart + 3);
         }
         if (second > 59) {
-            throw new DateTimeParseException("Second out of range", str, matcher.start(firstGroup+2));
+            throw new DateTimeParseException("Second out of range", str, timeStart + 6);
         }
     }
 
-    private static int parseYear(String str, int start) {
-        if (str.charAt(start) == '-') {
-            return -parse4(str, start + 1);
-        } else {
-            return parse4(str, start);
-        }
+    private static int parseYear(String str, Index idx) {
+        return parse4(str, idx.postInc(4));
     }
 
-    private static int parseOptionalNano(String str, int start, int end) {
-        if (start != -1) {
-            int digits = end-start;
-            switch (digits) {
-                case 1: return digit(str, start) * 100_000_000;
-                case 2: return parse2(str, start) * 10_000_000;
-                default: return parse3(str, start) * 1_000_000;
+
+    private static final int[] NANO_MULTIPLIER = {100_000_000, 10_000_000, 1_000_000};
+
+    private static int parseNano(String str, Index idx) {
+        int r = digit(str, idx.postInc());
+        int i;
+
+        for (i = 1; i < 3 && idx.get() < str.length(); i++) {
+            int ch = str.charAt(idx.get());
+            if (ch >= '0' && ch <= '9') {
+                r = r * 10 + (ch - '0');
+                idx.inc();
+            } else {
+                return r * NANO_MULTIPLIER[i-1];
             }
-        } else {
-            return 0;
         }
+        for (; i < 9 && idx.get() < str.length(); i++) {
+            int ch = str.charAt(idx.get());
+            if (ch >= '0' && ch <= '9') {
+                idx.inc();
+            } else {
+                break;
+            }
+        }
+        return r * NANO_MULTIPLIER[2];
     }
 
-    private static int parseOffsetMinute(String str, int start, int end) {
+    private static int parseOffsetMinute(String str, Index idx) {
+        int start = idx.get();
         char firstChar = str.charAt(start);
         int offsetSecond;
         if (firstChar == 'Z') {
+            idx.inc();
             offsetSecond = 0;
+            if (str.length() > idx.get()) {
+                throw new DateTimeParseException("trailing characters after timezone", str, start);
+            }
         } else {
-            int offsetHour = parse2(str, start + 1);
+            expect(str, start, '+', '-');
+            idx.inc();
+            int offsetHour = parse2(str, idx.get());
 
             if (offsetHour > 18) {
-                throw new DateTimeParseException("Timezone offset out of range", str, start+1);
+                throw new DateTimeParseException("Timezone offset out of range", str, idx.get());
             }
+            idx.inc(2);
 
-            if (end - start > 3) {
-                int offsetMinute = parse2(str, start + 4);
+            int remaining = str.length() - idx.get();
+            if (remaining == 3) {
+                expect(str, idx.postInc(), ':');
+                int offsetMinute = parse2(str, idx.get());
 
                 if (offsetMinute > 59) {
-                    throw new DateTimeParseException("Timezone offset out of range", str, start+4);
+                    throw new DateTimeParseException("Timezone offset out of range", str, idx.get());
                 }
+                idx.inc(2);
 
                 offsetSecond = offsetHour * 60 + offsetMinute;
-            } else {
+            } else if (remaining == 0) {
                 offsetSecond = offsetHour * 60;
+            } else {
+                throw new DateTimeParseException("invalid timezone offset", str, idx.get());
             }
             if (firstChar == '-') {
                 offsetSecond = -offsetSecond;
@@ -328,7 +363,24 @@ class DateTimeParser {
         return digit(str, start) * 1000 + digit(str, start + 1) * 100 + digit(str, start + 2) * 10 + digit(str, start + 3);
     }
 
+    private static void expect(String s, int i, char ch) {
+        if (s.charAt(i) != ch) {
+            throw new DateTimeParseException("expected '" + ch + "' at index " + i + " but got '" + s.charAt(i) + "'", s, i);
+        }
+    }
+
+    private static void expect(String s, int i, char ch1, char ch2) {
+        if (s.charAt(i) != ch1 && s.charAt(i) != ch2) {
+            throw new DateTimeParseException("expected either '" + ch1 + "' or '" + ch2 + "' at index " + i, s, i);
+        }
+    }
+
     private static int digit(String s, int i) {
-        return s.charAt(i) - '0';
+        int ch = s.charAt(i);
+        if (ch >= '0' && ch <= '9') {
+            return ch - '0';
+        } else {
+            throw new DateTimeParseException("not a digit at index " + i, s, i);
+        }
     }
 }
