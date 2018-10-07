@@ -1,5 +1,9 @@
 # Memory-efficient wrapper for java.time values with fast toString operations
 
+[![Build Status](https://travis-ci.org/jhorstmann/packedtime.svg?branch=master)](https://travis-ci.org/jhorstmann/packedtime)
+[![Release](https://img.shields.io/github/release/jhorstmann/packedtime.svg)](https://github.com/jhorstmann/packedtime/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/net.jhorstmann/packedtime.svg)](https://maven-badges.herokuapp.com/maven-central/net.jhorstmann/packedtime)
+
 The layout of `java.time` types like `OffsetDateTime` is not very space efficient.
 In jdk8, the memory layout of `OffsetDateTime` looks like the following:
 

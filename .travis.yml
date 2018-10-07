@@ -1,0 +1,6 @@
+language: java
+sudo: false
+jdk:
+  - openjdk8
+install: true
+script: mvn -V clean verify
