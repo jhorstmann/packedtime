@@ -179,11 +179,11 @@ abstract class AbstractPackedDateTime {
     }
 
     int appendOffsetMinute(int totalMinutes, char[] buf, int i) {
-        if (totalMinutes >= 0) {
-            buf[i++] = '+';
-        } else {
+        if (totalMinutes < 0 || totalMinutes == 0 ) {
             buf[i++] = '-';
             totalMinutes = -totalMinutes;
+        } else {
+            buf[i++] = '+';
         }
         int offsetHour = totalMinutes / 60;
         int offsetMinute = totalMinutes % 60;
@@ -196,6 +196,36 @@ abstract class AbstractPackedDateTime {
 
         return i;
     }
+
+    int appendOffsetSeconds(int totalSeconds, char[] buf, int i) {
+        if (totalSeconds < 0) {
+            buf[i++] = '-';
+            totalSeconds = -totalSeconds;
+        } else {
+            buf[i++] = '+';
+        }
+
+        int totalMinutes = totalSeconds / 60;
+
+        int offsetHour = totalMinutes / 60;
+        int offsetMinute = totalMinutes % 60;
+        int offsetSecond = totalSeconds % 60;
+
+        buf[i++] = (char) ('0' + offsetHour / 10);
+        buf[i++] = (char) ('0' + offsetHour % 10);
+        buf[i++] = ':';
+        buf[i++] = (char) ('0' + offsetMinute / 10);
+        buf[i++] = (char) ('0' + offsetMinute % 10);
+
+        if (offsetSecond != 0) {
+            buf[i++] = ':';
+            buf[i++] = (char) ('0' + offsetSecond / 10);
+            buf[i++] = (char) ('0' + offsetSecond % 10);
+        }
+
+        return i;
+    }
+
 
     @Override
     public final boolean equals(Object other) {

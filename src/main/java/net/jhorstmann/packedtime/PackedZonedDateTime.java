@@ -172,16 +172,7 @@ public class PackedZonedDateTime extends AbstractPackedDateTime {
         if (totalSeconds == 0) {
             buf[i++] = 'Z';
         } else {
-            int offsetMinute = totalSeconds / 60;
-            int offsetSecond = Math.abs(totalSeconds) % 60;
-
-            i = appendOffsetMinute(offsetMinute, buf, i);
-
-            if (offsetSecond != 0) {
-                buf[i++] = ':';
-                buf[i++] = (char) ('0' + offsetSecond / 10);
-                buf[i++] = (char) ('0' + offsetSecond % 10);
-            }
+            i = appendOffsetSeconds(totalSeconds, buf, i);
         }
 
         String result = new String(buf, 0, i);
