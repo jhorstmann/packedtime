@@ -118,7 +118,7 @@ class DateTimeParser {
 
         Date date = parseDate(str, idx);
 
-        expect(str, idx.postInc(), 'T');
+        expect(str, idx.postInc(), 'T', ' ');
 
         Time time = parseTime(str, idx);
 
@@ -138,7 +138,7 @@ class DateTimeParser {
 
         Date date = parseDate(str, idx);
 
-        expect(str, idx.postInc(), 'T');
+        expect(str, idx.postInc(), 'T', ' ');
 
         Time time = parseTime(str, idx);
 
@@ -163,7 +163,7 @@ class DateTimeParser {
 
         Date date = parseDate(str, idx);
 
-        expect(str, idx.postInc(), 'T');
+        expect(str, idx.postInc(), 'T', ' ');
 
         Time time = parseTime(str, idx);
 
@@ -363,15 +363,17 @@ class DateTimeParser {
         return digit(str, start) * 1000 + digit(str, start + 1) * 100 + digit(str, start + 2) * 10 + digit(str, start + 3);
     }
 
-    private static void expect(String s, int i, char ch) {
-        if (s.charAt(i) != ch) {
-            throw new DateTimeParseException("expected '" + ch + "' at index " + i + " but got '" + s.charAt(i) + "'", s, i);
+    private static void expect(String s, int i, char expected) {
+        char ch = s.charAt(i);
+        if (ch != expected) {
+            throw unexpected(s, i, ch, expected);
         }
     }
 
-    private static void expect(String s, int i, char ch1, char ch2) {
-        if (s.charAt(i) != ch1 && s.charAt(i) != ch2) {
-            throw new DateTimeParseException("expected either '" + ch1 + "' or '" + ch2 + "' at index " + i, s, i);
+    private static void expect(String s, int i, char expected1, char expected2) {
+        char ch = s.charAt(i);
+        if (ch != expected1 && ch != expected2) {
+            throw unexpected(s, i, ch, expected1, expected2);
         }
     }
 
@@ -380,7 +382,19 @@ class DateTimeParser {
         if (ch >= '0' && ch <= '9') {
             return ch - '0';
         } else {
-            throw new DateTimeParseException("not a digit at index " + i, s, i);
+            throw nonDigit(s, i);
         }
+    }
+
+    private static DateTimeParseException unexpected(String s, int i, char ch, char expected) {
+        return new DateTimeParseException("expected '" + expected + "' at index " + i + " but got '" + ch + "'", s, i);
+    }
+
+    private static DateTimeParseException unexpected(String s, int i, char ch, char expected1, char expected2) {
+        return new DateTimeParseException("expected either '" + expected1 + "' or '" + expected2 + "' at index " + i + " but got '" + ch + "'", s, i);
+    }
+
+    private static DateTimeParseException nonDigit(String s, int i) {
+        return new DateTimeParseException("not a digit at index " + i, s, i);
     }
 }
