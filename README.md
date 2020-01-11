@@ -61,12 +61,15 @@ Comparator<OffsetDateTime> comparator = Comparator.comparing(OffsetDateTime::toO
 
 ## Benchmarks
 
-(Benchmarked using JMH on an i7-4702MQ notebook)
+Benchmarked using JMH on an EC2 m5.large (Xeon Platinum 8175M)
 
 ```
-Benchmark                                                  Mode  Cnt      Score      Error  Units
-PackedOffsetDateTimeBenchmark.formatOffsetDateTime        thrpt    6   2876.980 ±   91.094  ops/s
-PackedOffsetDateTimeBenchmark.formatPackedOffsetDateTime  thrpt    6  18114.016 ± 2423.790  ops/s
-PackedOffsetDateTimeBenchmark.parseOffsetDateTime         thrpt    6    531.772 ±    7.471  ops/s
-PackedOffsetDateTimeBenchmark.parsePackedOffsetDateTime   thrpt    6   1507.251 ±   49.469  ops/s
+# JMH version: 1.21
+# VM version: JDK 11.0.5, OpenJDK 64-Bit Server VM, 11.0.5+10-post-Ubuntu-0ubuntu1.1
+
+Benchmark                                                  Mode  Cnt      Score     Error  Units
+PackedOffsetDateTimeBenchmark.formatOffsetDateTime        thrpt    6   3269.215 ±   8.940  ops/s
+PackedOffsetDateTimeBenchmark.formatPackedOffsetDateTime  thrpt    6  18689.788 ± 693.067  ops/s
+PackedOffsetDateTimeBenchmark.parseOffsetDateTime         thrpt    6    643.025 ±   2.320  ops/s
+PackedOffsetDateTimeBenchmark.parsePackedOffsetDateTime   thrpt    6  15827.038 ±  26.575  ops/s
 ```
