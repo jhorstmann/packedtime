@@ -99,4 +99,27 @@ public class DateTimeParserTest {
         Assertions.assertEquals(LocalDateTime.parse(str).atZone(ZoneId.of("Europe/Berlin")).toOffsetDateTime(), parsed.toOffsetDateTime());
     }
 
+    @Test
+    public void shouldParseSpaceAsSeparator() {
+        String str = "2020-01-11 12:19:42+01:00";
+        PackedOffsetDateTime parsed = DateTimeParser.parseOffsetDateTime(str);
+
+        Assertions.assertEquals(OffsetDateTime.parse(str.replace(' ', 'T')), parsed.toOffsetDateTime());
+    }
+
+    @Test
+    public void shouldParseSpaceAsSeparatorWithDefaultOffset() {
+        String str = "2020-01-11 12:19:42";
+        PackedOffsetDateTime parsed = DateTimeParser.parseOffsetDateTimeWithDefaultOffset(str, 1*60*60);
+
+        Assertions.assertEquals(OffsetDateTime.parse(str.replace(' ', 'T') + "+01:00"), parsed.toOffsetDateTime());
+    }
+
+    @Test
+    public void shouldParseSpaceAsSeparatorWithDefaultZone() {
+        String str = "2020-01-11 12:19:42";
+        PackedOffsetDateTime parsed = DateTimeParser.parseOffsetDateTimeWithDefaultZone(str, ZoneId.of("Europe/Berlin"));
+
+        Assertions.assertEquals(OffsetDateTime.parse(str.replace(' ', 'T') + "+01:00"), parsed.toOffsetDateTime());
+    }
 }
