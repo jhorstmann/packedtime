@@ -1,5 +1,7 @@
 package net.jhorstmann.packedtime;
 
+import java.time.DateTimeException;
+
 abstract class AbstractPackedDateTime {
     static final int OFFSET_BITS = 12;
     private static final int MILLI_BITS = 10;
@@ -40,7 +42,7 @@ abstract class AbstractPackedDateTime {
 
     static long encode(int year, int month, int day, int hour, int minute, int second, int nano, int offsetId) {
         if (year < MIN_YEAR || year > MAX_YEAR) {
-            throw new IllegalStateException("Year is outside of allowed range " + MIN_YEAR + " to " + MAX_YEAR + ": " + year);
+            throw new DateTimeException("Year is outside of allowed range " + MIN_YEAR + " to " + MAX_YEAR + ": " + year);
         }
 
         int milli = nano / 1_000_000;
@@ -57,13 +59,13 @@ abstract class AbstractPackedDateTime {
 
     static long encodeWithOffsetSeconds(int year, int month, int day, int hour, int minute, int second, int nano, int offsetSeconds) {
         if (offsetSeconds % 60 != 0) {
-            throw new IllegalStateException("Time zone offset with second precision is not supported: " + offsetSeconds);
+            throw new DateTimeException("Time zone offset with second precision is not supported: " + offsetSeconds);
         }
 
         int offsetMinutes = offsetSeconds / 60;
 
         if (offsetMinutes < MIN_OFFSET_MINUTES || offsetMinutes > MAX_OFFSET_MINUTES) {
-            throw new IllegalStateException("Zone offset outside of allowed range " + MIN_OFFSET_HOURS + " to " + MAX_OFFSET_HOURS);
+            throw new DateTimeException("Zone offset outside of allowed range " + MIN_OFFSET_HOURS + " to " + MAX_OFFSET_HOURS);
         }
 
         return encode(year, month, day, hour, minute, second, nano, offsetMinutes + -MIN_OFFSET_MINUTES);

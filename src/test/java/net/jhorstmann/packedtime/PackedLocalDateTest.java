@@ -3,6 +3,7 @@ package net.jhorstmann.packedtime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 
 public class PackedLocalDateTest {
@@ -40,6 +41,28 @@ public class PackedLocalDateTest {
 
         Assertions.assertEquals(max, packed.toLocalDate());
         Assertions.assertEquals(max.toString(), packed.toString());
+    }
+
+    @Test
+    public void invalidYearMax() {
+        LocalDate date = LocalDate.of(10_000, 1, 1);
+
+        DateTimeException ex = Assertions.assertThrows(DateTimeException.class, () -> {
+            PackedLocalDate.fromLocalDate(date);
+        });
+
+        Assertions.assertTrue(ex.getMessage(). endsWith(": 10000"));
+    }
+
+    @Test
+    public void invalidYearMin() {
+        LocalDate date = LocalDate.of(-10_000, 1, 1);
+
+        DateTimeException ex = Assertions.assertThrows(DateTimeException.class, () -> {
+            PackedLocalDate.fromLocalDate(date);
+        });
+
+        Assertions.assertTrue(ex.getMessage(). endsWith(": -10000"));
     }
 
 }
