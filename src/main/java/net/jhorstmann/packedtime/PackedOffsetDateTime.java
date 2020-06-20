@@ -1,8 +1,6 @@
 package net.jhorstmann.packedtime;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 
 public class PackedOffsetDateTime extends AbstractPackedDateTime {
 
@@ -83,6 +81,24 @@ public class PackedOffsetDateTime extends AbstractPackedDateTime {
 
     public int getOffsetSecond() {
         return extractOffsetSecond();
+    }
+
+    public long toEpochSeconds() {
+        long epochDay = LocalDate.of(extractYear(), extractMonth(), extractDay()).toEpochDay();
+
+        long seconds = epochDay * 24 * 60 * 60;
+
+        seconds += extractHour() * 60 * 60;
+        seconds += extractMinute() * 60;
+        seconds += extractSecond();
+
+        seconds -= getOffsetSecond();
+
+        return seconds;
+    }
+
+    public long toEpochMillis() {
+        return toEpochSeconds() * 1000 + extractMilli();
     }
 
     public String toString() {

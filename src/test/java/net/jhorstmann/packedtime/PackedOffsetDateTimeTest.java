@@ -70,4 +70,13 @@ public class PackedOffsetDateTimeTest {
         Assertions.assertEquals(min.toString(), packed.toString());
     }
 
+    @Test
+    public void epochMillis() {
+        OffsetDateTime odt = OffsetDateTime.of(2020, 6, 1, 12, 30, 23, 0, ZoneOffset.ofHours(-2));
+        PackedOffsetDateTime packed = PackedOffsetDateTime.fromOffsetDateTime(odt);
+
+        Assertions.assertEquals(odt.toInstant().toEpochMilli(), packed.toEpochMillis());
+        Assertions.assertEquals(odt.toInstant().toEpochMilli(), packed.toEpochMillis());
+    }
+
 }
